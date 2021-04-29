@@ -1,3 +1,5 @@
+// Tes
+
 import pygame
 from dino import Dino
 
