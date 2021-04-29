@@ -1,4 +1,4 @@
-// Tes
+/// aaaa
 
 import pygame
 from dino import Dino
