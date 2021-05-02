@@ -1,12 +1,12 @@
 import pygame
 
 class Dino:
-    def __init__(self, base_y):
+    def __init__(self, road_y):
         # Posisi dino
         self.pos_x = 70
         self.pos_y = 0
-        # Posisi jalan
-        self.base_y = base_y
+        # Ketinggian jalan
+        self.road_y = road_y
         # Status dino
         self.state = "IDLE"
 
@@ -42,7 +42,7 @@ class Dino:
 
     def show(self, display, frame):
         if self.state == "JUMP":
-            if self.pos_y < 100:
+            if self.pos_y < 120:
                 self.pos_y += 5
             else:
                 self.state = "WALK"
@@ -53,9 +53,10 @@ class Dino:
                 self.anim = self.walk_anim
 
         frame %= len(self.anim)
-        display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.base_y - self.anim[0].get_height() - self.pos_y))
+        display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.road_y - self.anim[0].get_height() - self.pos_y))
 
     def walk(self):
+        # Cegah jalan saat melompat
         if self.pos_y <= 0:
             self.pos_y = 0
             self.state = "WALK"
@@ -68,6 +69,7 @@ class Dino:
             self.anim = self.jump_anim
 
     def duck(self):
+        # Cegah jongkok saat melompat
         if self.pos_y == 0:
             self.pos_y -= 20
             self.state = "DUCK"

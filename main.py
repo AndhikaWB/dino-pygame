@@ -1,14 +1,19 @@
-/// aaaa
-
 import pygame
+import random
 from dino import Dino
+from enemy import *
 
 def dino_game():
     # Frame mula-mula
+    max_fps = 30
     frame = 0
 
+    # Tinggi jalan
+    road_y = 50
+
     # Inisialisasi objek
-    dino = Dino(50)
+    dino = Dino(road_y)
+    enemy = Enemy(road_y)
 
     while True:
         # Tampilkan latar belakang
@@ -25,7 +30,17 @@ def dino_game():
             elif event.type == pygame.KEYUP:
                 dino.walk()
 
+        if enemy.exist == False:
+            enemy_type = random.randrange(0, 2)
+            if enemy_type == 0:
+                enemy = Snail(road_y)
+            elif enemy_type == 1:
+                enemy = Spike(road_y)
+            elif enemy_type == 2:
+                enemy = Fly(road_y)
+
         dino.show(display, frame)
+        enemy.show(display, frame)
         pygame.display.update()
 
         # Atur framerate
@@ -33,7 +48,7 @@ def dino_game():
         frame = (frame + 1) % max_fps
 
 if __name__ == "__main__":
-    # Inisialisasi modul pygame
+    # Inisialisasi pygame
     pygame.init()
     pygame.mixer.init()
 
@@ -42,7 +57,6 @@ if __name__ == "__main__":
     background = pygame.image.load("assets/background_01.png")
     display = pygame.display.set_mode((800, 600))
     fps = pygame.time.Clock()
-    max_fps = 30
 
     # Panggil dino game
     dino_game()
