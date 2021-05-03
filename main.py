@@ -1,17 +1,20 @@
 import pygame
 import random
+
+from menu import Menu
 from dino import Dino
-from enemy import *
+from enemy import Enemy, Snail, Spike, Fly
 
 def dino_game():
     # Frame mula-mula
     max_fps = 30
     frame = 0
 
-    # Tinggi jalan
+    # Ketinggian jalan
     road_y = 50
 
-    # Inisialisasi objek
+    # Instansiasi objek
+    menu = Menu()
     dino = Dino(road_y)
     enemy = Enemy(road_y)
 
@@ -22,16 +25,22 @@ def dino_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_UP:
-                    dino.jump()
-                elif event.key == pygame.K_DOWN:
-                    dino.duck()
-            elif event.type == pygame.KEYUP:
-                dino.walk()
+            elif menu.state == "PAUSE":
+                if event.type == pygame.KEYDOWN:
+                    menu.unpause()
+            elif menu.state == "NOT_PAUSE":
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_UP:
+                        dino.jump()
+                    elif event.key == pygame.K_DOWN:
+                        dino.duck()
+                    elif event.key == pygame.K_ESCAPE:
+                        menu.pause()
+                elif event.type == pygame.KEYUP:
+                    dino.walk()
 
-        if enemy.exist == False:
-            enemy_type = random.randrange(0, 2)
+        if enemy.state == "NOT_EXIST":
+            enemy_type = random.randint(0, 2)
             if enemy_type == 0:
                 enemy = Snail(road_y)
             elif enemy_type == 1:
@@ -39,8 +48,10 @@ def dino_game():
             elif enemy_type == 2:
                 enemy = Fly(road_y)
 
-        dino.show(display, frame)
-        enemy.show(display, frame)
+        if menu.state == "NOT_PAUSE":
+            menu.update(display, font)
+            dino.update(display, frame)
+            enemy.update(display, frame)
         pygame.display.update()
 
         # Atur framerate
@@ -56,6 +67,7 @@ if __name__ == "__main__":
     pygame.display.set_caption("Bellatrix's Dino Game")
     background = pygame.image.load("assets/background_01.png")
     display = pygame.display.set_mode((800, 600))
+    font = pygame.font.Font("assets/VT323-Regular.ttf", 28)
     fps = pygame.time.Clock()
 
     # Panggil dino game
