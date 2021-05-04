@@ -1,62 +1,61 @@
 import pygame
 import random
 
+move_speed = 12
+anim_delay = 5
+
 class Enemy:
-    def __init__(self, road_y, pos_x):
+    def __init__(self, road_height, pos_x):
         # Posisi musuh
         self.pos_x = pos_x
         self.pos_y = 0
         # Ketinggian jalan
-        self.road_y = road_y
+        self.road_height = road_height
         # Status musuh
-        self.state = "NOT_EXIST"
-        # Area animasi musuh
+        self.state = "EXIST"
+        # Area dan animasi musuh
         self.rect = None
-        # Gerakan animasi musuh
         self.anim = [
             pygame.image.load("assets/snail_move_01.png").convert_alpha(),
             pygame.image.load("assets/snail_move_02.png").convert_alpha()
         ]
 
-    def update(self, display, frame):
-        if self.pos_x - self.anim[0].get_width() > self.anim[0].get_width() * -1:
-            # Bergerak perlahan ke kiri (selama terlihat di layar)
-            self.pos_x -= 12
-        else:
-            # Sudah sampai ke ujung kiri
-            self.state = "NOT_EXIST"
+    def reset(self, display):
+        return [ Snail(self.road_height, display.get_width()) ]
 
-        # Haluskan animasi jalan
-        frame %= 5 * len(self.anim)
-        if frame < 5: frame = 0
+    def update(self, display, frame, game_state):
+        if game_state == "RUN":
+            # Bergerak ke kiri sampai tidak terlihat
+            if self.pos_x - self.anim[0].get_width() > self.anim[0].get_width() * -1:
+                self.pos_x -= move_speed
+            # Ganti status jika sudah tak terlihat
+            else: self.state = "NOT_EXIST"
+
+        # Haluskan animasi musuh
+        frame %= anim_delay * len(self.anim)
+        if frame < anim_delay: frame = 0
         else: frame = 1
 
+        # Dapatkan area gambar musuh untuk pengecekan tabrakan
         self.rect = self.anim[frame].get_rect(topleft = (self.pos_x, self.pos_y))
-        display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.road_y - self.anim[0].get_height() - self.pos_y))
+        # Tampilkan posisi musuh saat ini ke layar game
+        display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.road_height - self.anim[0].get_height() - self.pos_y))
 
 class Snail(Enemy):
-    def __init__(self, road_y, pos_x):
-        super().__init__(road_y, pos_x)
-        # Status musuh
-        self.state = "EXIST"
+    def __init__(self, road_height, pos_x):
+        super().__init__(road_height, pos_x)
 
 class Spike(Enemy):
-    def __init__(self, road_y, pos_x):
-        super().__init__(road_y, pos_x)
-        # Status musuh
-        self.state = "EXIST"
-        # Gerakan animasi musuh
+    def __init__(self, road_height, pos_x):
+        super().__init__(road_height, pos_x)
         self.anim = [
             pygame.image.load("assets/spike_move_01.png").convert_alpha(),
             pygame.image.load("assets/spike_move_02.png").convert_alpha()
         ]
 
 class Fly(Enemy):
-    def __init__(self, road_y, pos_x):
-        super().__init__(road_y, pos_x)
-        # Status musuh
-        self.state = "EXIST"
-        # Gerakan animasi musuh
+    def __init__(self, road_height, pos_x):
+        super().__init__(road_height, pos_x)
         self.anim = [
             pygame.image.load("assets/fly_move_01.png").convert_alpha(),
             pygame.image.load("assets/fly_move_02.png").convert_alpha()
@@ -67,5 +66,4 @@ class Fly(Enemy):
             self.pos_y = 15
         elif fly_height == 1:
             self.pos_y = 35
-        elif fly_height > 1:
-            self.pos_y = 65
+        else: self.pos_y = 65
