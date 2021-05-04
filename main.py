@@ -52,6 +52,9 @@ def dino_game():
             menu.update(display, font)
             dino.update(display, frame)
             enemy.update(display, frame)
+            if dino.rect.colliderect(enemy.rect):
+                print("Noob")
+                menu.pause(font)
         pygame.display.update()
 
         # Atur framerate

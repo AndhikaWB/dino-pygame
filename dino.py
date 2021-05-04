@@ -9,10 +9,9 @@ class Dino:
         self.road_y = road_y
         # Status dino
         self.state = "IDLE"
-        # Animasi dan bentuk dino
-        #self.anim = self.idle_anim
-        #self.rect = self.anim[0].get_rect()
-
+        # Area animasi dino
+        self.rect = None
+        # Gerakan animasi dino
         self.anim = self.idle_anim = [
             pygame.image.load("assets/dino_idle_01.png").convert_alpha()
         ]
@@ -34,8 +33,6 @@ class Dino:
             pygame.image.load("assets/dino_hurt_01.png").convert_alpha()
         ]
 
-        self.rect = self.anim[0].get_rect()
-
     def update(self, display, frame):
         if self.state == "JUMP":
             if self.pos_y < 120:
@@ -51,13 +48,13 @@ class Dino:
             else:
                 # Sudah di batas minimum (pada ketinggian jalan)
                 self.anim = self.walk_anim
-                self.rect = self.anim[0].get_rect()
 
         # Haluskan animasi jalan
         frame %= 5 * len(self.anim)
         if frame < 5: frame = 0
         else: frame = 1
 
+        self.rect = self.anim[frame].get_rect(topleft = (self.pos_x, self.pos_y))
         display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.road_y - self.anim[0].get_height() - self.pos_y))
 
     def walk(self):
@@ -66,14 +63,12 @@ class Dino:
             self.pos_y = 0
             self.state = "WALK"
             self.anim = self.walk_anim
-            self.rect = self.anim[0].get_rect()
 
     def jump(self):
         # Cegah lompat berkali-kali
         if self.pos_y == 0:
             self.state = "JUMP"
             self.anim = self.jump_anim
-            self.rect = self.anim[0].get_rect()
 
     def duck(self):
         # Cegah jongkok saat melompat
@@ -81,4 +76,3 @@ class Dino:
             self.pos_y -= 20
             self.state = "DUCK"
             self.anim = self.duck_anim
-            self.rect = self.anim[0].get_rect()

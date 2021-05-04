@@ -3,8 +3,8 @@ class Menu:
         self.score = 0
         self.state = "PAUSE"
 
-    def pause(self, font):
-        self.state = "PAUSE"
+    def pause(self, font, state = "PAUSE"):
+        self.state = state
 
     def unpause(self):
         self.state = "NOT_PAUSE"
