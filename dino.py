@@ -33,6 +33,9 @@ class Dino:
             pygame.image.load("assets/dino_hurt_01.png").convert_alpha()
         ]
 
+    def reset(self):
+        self.__init__(self.road_y)
+
     def update(self, display, frame):
         if self.state == "JUMP":
             if self.pos_y < 120:

@@ -18,6 +18,9 @@ class Enemy:
             pygame.image.load("assets/snail_move_02.png").convert_alpha()
         ]
 
+    def reset(self):
+        self.__init__(self.road_y)
+
     def update(self, display, frame):
         if self.pos_x == None:
             # Mulai dari ujung kanan
@@ -69,6 +72,6 @@ class Fly(Enemy):
         if fly_height == 0:
             self.pos_y = 65
         elif fly_height == 1:
-            self.pos_y = 40
+            self.pos_y = 35
         elif fly_height == 2:
             self.pos_y = 15

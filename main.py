@@ -7,6 +7,7 @@ from enemy import Enemy, Snail, Spike, Fly
 
 def dino_game():
     # Frame mula-mula
+    min_fps = 30
     max_fps = 30
     frame = 0
 
@@ -25,21 +26,28 @@ def dino_game():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
-            elif menu.state == "PAUSE":
-                if event.type == pygame.KEYDOWN:
-                    menu.unpause()
-            elif menu.state == "NOT_PAUSE":
+            elif menu.state == "RUN":
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_UP:
                         dino.jump()
                     elif event.key == pygame.K_DOWN:
                         dino.duck()
                     elif event.key == pygame.K_ESCAPE:
-                        menu.pause()
+                        menu.change_state("PAUSE")
                 elif event.type == pygame.KEYUP:
                     dino.walk()
+            elif menu.state == "PAUSE" or menu.state == "DIED":
+                if event.type == pygame.KEYDOWN:
+                    if menu.state == "PAUSE":
+                        if event.key == pygame.K_r:
+                            max_fps = menu.reset(dino, enemy, min_fps)
+                        elif event.key == pygame.K_ESCAPE:
+                            menu.change_state("RUN")
+                    elif menu.state == "DIED":
+                        max_fps = menu.reset(dino, enemy, min_fps)
 
         if enemy.state == "NOT_EXIST":
+            max_fps = menu.add_score(max_fps)
             enemy_type = random.randint(0, 2)
             if enemy_type == 0:
                 enemy = Snail(road_y)
@@ -48,13 +56,13 @@ def dino_game():
             elif enemy_type == 2:
                 enemy = Fly(road_y)
 
-        if menu.state == "NOT_PAUSE":
-            menu.update(display, font)
+        if menu.state == "RUN":
             dino.update(display, frame)
             enemy.update(display, frame)
             if dino.rect.colliderect(enemy.rect):
+                menu.change_state("DIED")
                 print("Noob")
-                menu.pause(font)
+        menu.update(display, font)
         pygame.display.update()
 
         # Atur framerate
