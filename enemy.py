@@ -2,7 +2,7 @@ import pygame
 import random
 
 class Enemy:
-    def __init__(self, road_y, pos_x = None):
+    def __init__(self, road_y, pos_x):
         # Posisi musuh
         self.pos_x = pos_x
         self.pos_y = 0
@@ -18,15 +18,9 @@ class Enemy:
             pygame.image.load("assets/snail_move_02.png").convert_alpha()
         ]
 
-    def reset(self):
-        self.__init__(self.road_y)
-
     def update(self, display, frame):
-        if self.pos_x == None:
-            # Mulai dari ujung kanan
-            self.pos_x = display.get_width()
-        elif self.pos_x - self.anim[0].get_width() > self.anim[0].get_width() * -1:
-            # Bergerak perlahan ke kiri (selama masih terlihat di layar)
+        if self.pos_x - self.anim[0].get_width() > self.anim[0].get_width() * -1:
+            # Bergerak perlahan ke kiri (selama terlihat di layar)
             self.pos_x -= 12
         else:
             # Sudah sampai ke ujung kiri
@@ -41,14 +35,14 @@ class Enemy:
         display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.road_y - self.anim[0].get_height() - self.pos_y))
 
 class Snail(Enemy):
-    def __init__(self, road_y):
-        super().__init__(road_y)
+    def __init__(self, road_y, pos_x):
+        super().__init__(road_y, pos_x)
         # Status musuh
         self.state = "EXIST"
 
 class Spike(Enemy):
-    def __init__(self, road_y):
-        super().__init__(road_y)
+    def __init__(self, road_y, pos_x):
+        super().__init__(road_y, pos_x)
         # Status musuh
         self.state = "EXIST"
         # Gerakan animasi musuh
@@ -58,8 +52,8 @@ class Spike(Enemy):
         ]
 
 class Fly(Enemy):
-    def __init__(self, road_y):
-        super().__init__(road_y)
+    def __init__(self, road_y, pos_x):
+        super().__init__(road_y, pos_x)
         # Status musuh
         self.state = "EXIST"
         # Gerakan animasi musuh
@@ -68,10 +62,10 @@ class Fly(Enemy):
             pygame.image.load("assets/fly_move_02.png").convert_alpha()
         ]
         # Acak ketinggian musuh
-        fly_height = random.randint(0, 2)
+        fly_height = random.randint(0, 4)
         if fly_height == 0:
-            self.pos_y = 65
+            self.pos_y = 15
         elif fly_height == 1:
             self.pos_y = 35
-        elif fly_height == 2:
-            self.pos_y = 15
+        elif fly_height > 1:
+            self.pos_y = 65

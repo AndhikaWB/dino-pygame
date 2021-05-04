@@ -15,12 +15,12 @@ def dino_game():
     # Ketinggian jalan
     road_y = 50
     # Jarak antar musuh
-    min_gap = 500
-    max_gap = 600
+    min_gap = 450
+    max_gap = 650
     # Instansiasi objek
     menu = Menu()
     dino = Dino(road_y)
-    enemy = Enemy(road_y)
+    enemies = [ Snail(road_y, display.get_width()) ]
 
     while True:
         # Tampilkan background game
@@ -51,35 +51,44 @@ def dino_game():
                     if menu.state == "PAUSE":
                         # Tekan R untuk mengulang game
                         if event.key == pygame.K_r:
-                            cur_fps = menu.reset(dino, enemy, min_fps)
+                            cur_fps = menu.reset(min_fps)
+                            dino.reset()
+                            enemies = [ Snail(road_y, display.get_width()) ]
                         # Tekan ESC untuk melanjutkan game
                         elif event.key == pygame.K_ESCAPE:
                             menu.change_state("RUN")
                     elif menu.state == "DIED":
                         # Tekan APA SAJA untuk mengulang game
-                        cur_fps = menu.reset(dino, enemy, min_fps)
+                        cur_fps = menu.reset(min_fps)
+                        dino.reset()
+                        enemies = [ Snail(road_y, display.get_width()) ]
 
-        # Jika sedang tidak ada musuh
-        if enemy.state == "NOT_EXIST":
-            # Tambahkan skor saat ini
-            cur_fps = menu.add_score(cur_fps)
-            # Tambahkan musuh secara acak
-            enemy_type = random.randint(0, 2)
+        # Jika baru ada satu musuh
+        if len(enemies) == 1:
+            # Acak tipe dan jarak musuh kedua
+            enemy_type = random.randint(0,2)
+            enemy_range = random.randrange(enemies[0].pos_x + min_gap, enemies[0].pos_x + max_gap, 25)
+            # Tambahkan musuh kedua
             if enemy_type == 0:
-                enemy = Snail(road_y)
+                enemies.append(Snail(road_y, enemy_range))
             elif enemy_type == 1:
-                enemy = Spike(road_y)
+                enemies.append(Spike(road_y, enemy_range))
             elif enemy_type == 2:
-                enemy = Fly(road_y)
+                enemies.append(Fly(road_y, enemy_range))
 
         # Jika game sedang kondisi main
         if menu.state == "RUN":
-            # Update gerakan dino dan musuh
+            # Update pergerakan dino
             dino.update(display, cur_frame)
-            enemy.update(display, cur_frame)
-            # Cek apakah dino menabrak musuh
-            if dino.rect.colliderect(enemy.rect):
-                menu.change_state("DIED")
+            # Cek pergerakan musuh
+            for enemy in enemies:
+                enemy.update(display, cur_frame)
+                if dino.rect.colliderect(enemy.rect):
+                    dino.hurt()
+                    menu.change_state("DIED")
+                elif enemy.state == "NOT_EXIST":
+                    cur_fps = menu.add_score(cur_fps)
+                    enemies.remove(enemy)
 
         # Update menu dan display
         menu.update(display, font)

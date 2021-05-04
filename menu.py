@@ -18,13 +18,10 @@ class Menu:
     def change_state(self, state):
         self.state = state
 
-    def reset(self, dino, enemy, min_fps):
+    def reset(self, min_fps):
         # Reset menu
         self.score = 0
         self.state = "RUN"
-        # Reset objek lain
-        dino.reset()
-        enemy.reset()
         # Reset frame
         return min_fps
 
