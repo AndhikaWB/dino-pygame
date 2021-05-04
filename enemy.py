@@ -2,9 +2,9 @@ import pygame
 import random
 
 class Enemy:
-    def __init__(self, road_y):
+    def __init__(self, road_y, pos_x = None):
         # Posisi musuh
-        self.pos_x = None
+        self.pos_x = pos_x
         self.pos_y = 0
         # Ketinggian jalan
         self.road_y = road_y

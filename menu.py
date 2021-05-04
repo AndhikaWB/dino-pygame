@@ -1,24 +1,31 @@
 class Menu:
     def __init__(self):
         self.score = 0
-        self.state = "RUN"
+        self.state = "DIED"
 
-    def add_score(self, max_fps):
+    def add_score(self, cur_fps):
         self.score += 1
-        # Bonus skor tiap melewati 5 rintangan
+        # Bonus skor tiap 5 rintangan
         if self.score % 5 == 0:
+            print("Game score +10")
             self.score += 10
+        # Tambah kecepatan tiap 10 rintangan
         if self.score % 30 == 0:
-            return max_fps + 3
-        return max_fps
+            print("Game speed +3")
+            return cur_fps + 3
+        return cur_fps
 
     def change_state(self, state):
         self.state = state
 
     def reset(self, dino, enemy, min_fps):
-        self.__init__()
+        # Reset menu
+        self.score = 0
+        self.state = "RUN"
+        # Reset objek lain
         dino.reset()
         enemy.reset()
+        # Reset frame
         return min_fps
 
     def update(self, display, font):

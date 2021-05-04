@@ -79,3 +79,6 @@ class Dino:
             self.pos_y -= 20
             self.state = "DUCK"
             self.anim = self.duck_anim
+
+    def hurt(self):
+        self.anim = self.hurt_anim
