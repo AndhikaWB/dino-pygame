@@ -1,57 +1,52 @@
 import pygame
 
+min_speed = 30
+max_speed = 60
+
 class Menu:
     def __init__(self):
+        # Skor game
         self.score = 0
+        # Status game
         self.state = "DIED"
+        # Kecepatan game
+        self.speed = min_speed
 
-    def add_score(self, cur_fps):
+    def add_score(self):
         self.score += 1
         # Bonus skor tiap 5 rintangan
         if self.score % 5 == 0:
-            print(f"Game score +10 ({self.score})")
             self.score += 10
+            print(f"Game score +10 ({self.score})")
         # Tambah kecepatan tiap 10 rintangan
         if self.score % 30 == 0:
-            print(f"Game speed +3 ({cur_fps + 3})")
-            return cur_fps + 3
-        return cur_fps
+            if self.speed < max_speed:
+                self.speed += 3
+                print(f"Game speed +3 ({self.speed})")
 
     def game_run(self):
+        # Posisi game sedang berjalan
         self.state = "RUN"
 
     def game_pause(self):
+        # Posisi game sedang di menu pause
         self.state = "PAUSE"
 
     def game_end(self):
+        # Posisi game sedang di menu game over
         print(f"Game over ({self.score})")
         self.state = "DIED"
 
-    def reset(self, min_fps):
-        self.score = 0
+    def reset(self, display, dino, enemy):
+        # Reset skor dan status
+        self.__init__()
         self.state = "RUN"
-        return min_fps
-
-    """
-    def check(self, event, min_fps):
-        if event.type == pygame.KEYDOWN:
-            if self.state == "RUN":
-                if event.key == pygame.K_p:
-                    self.game_pause()
-            elif self.state == "PAUSE":
-                if event.key == pygame.K_p:
-                    self.game_run()
-                elif event.key == pygame.k_r:
-                    self.reset(min_fps)
-                elif event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-            elif self.state == "DIED":
-                if event.key == pygame.K_ESCAPE:
-                    pygame.quit()
-                else: self.reset(min_fps)
-    """
+        # Reset posisi dino dan musuh
+        dino.reset()
+        enemy.reset(display)
 
     def update(self, display, font):
+        # Update skor secara terus menerus
         score_text = font.render("Score: " + str(self.score), True, (255, 255, 255))
         display.blit(score_text, (10, 10))
 

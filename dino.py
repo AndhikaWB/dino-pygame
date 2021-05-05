@@ -33,35 +33,22 @@ class Dino:
         ]
 
     def reset(self):
+        # Reset keberadaan dino
         self.__init__(self.road_height)
 
-    """
-    def check(self, event):
-        if event.type == pygame.KEYDOWN:
-            # Tekan panah atas untuk melompat
-            if event.key == pygame.K_UP:
-                self.jump()
-            # Tekan panah bawah untuk menunduk
-            elif event.key == pygame.K_DOWN:
-                self.duck()
-        # Kembali berjalan jika kondisi memungkinkan
-        elif event.type == pygame.KEYUP:
-            self.walk()
-    """
-
-    def update(self, display, frame, game_state):
-        if game_state == "RUN":
+    def update(self, display, frame, menu):
+        if menu.state == "RUN":
             if self.state == "JUMP":
-                # Naik perlahan-lahan sampai titik maksimum
+                # Dino naik perlahan-lahan sampai titik maksimum
                 if self.pos_y < jump_height:
                     self.pos_y += jump_speed
-                # Ganti status jika sudah di titik maksimum
+                # Ganti status dino jika sudah di titik maksimum
                 else: self.state = "WALK"
             elif self.state == "WALK":
-                # Turun perlahan-lahan sampai titik minimum
+                # Dino turun perlahan-lahan sampai titik minimum
                 if self.pos_y > 0:
                     self.pos_y -= jump_speed
-                # Ganti animasi jika sudah di titik minimum
+                # Ganti animasi dino jika sudah di titik minimum
                 else: self.anim = self.walk_anim
 
         # Haluskan animasi dino
@@ -95,4 +82,5 @@ class Dino:
             self.anim = self.duck_anim
 
     def hurt(self):
+        # Animasi ketika menabrak musuh
         self.anim = self.hurt_anim
