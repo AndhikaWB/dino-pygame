@@ -5,17 +5,18 @@ from menu import Menu
 from dino import Dino
 from enemy import Enemy
 
+# Ukuran layar game
 display_width = 800
 display_height = 600
-font_size = 28
+
+# Ketinggian jalan
 road_height = 50
 
 def dino_game():
-    # Instansiasi objek
+    # Inisiasi objek
     menu = Menu()
     dino = Dino(road_height)
     enemy = Enemy(road_height)
-
     # Inisiasi frame
     frame = 0
 
@@ -42,24 +43,26 @@ def dino_game():
                 elif event.type == pygame.KEYUP:
                     dino.walk()
             elif menu.state != "RUN":
-                if event.type == pygame.KEYDOWN:
+                if event.type == pygame.MOUSEBUTTONDOWN:
                     if menu.state == "PAUSE":
-                        # Tekan R untuk memulai kembali
-                        if event.key == pygame.K_r:
-                            menu.reset(display, dino, enemy)
-                        # Tekan ESC untuk melanjutkan
-                        elif event.key == pygame.K_ESCAPE:
+                        if menu.hover == 0:
                             menu.game_run()
+                        elif menu.hover == 1:
+                            menu.reset(display, dino, enemy)
+                        elif menu.hover == 2:
+                            return
                     elif menu.state == "DIED":
-                        # Tekan APA SAJA untuk memulai kembali
-                        menu.reset(display, dino, enemy)
+                        if menu.hover == 0:
+                            menu.reset(display, dino, enemy)
+                        elif menu.hover == 1:
+                            return
 
         # Update pergerakan dino dan musuh
         dino.update(display, frame, menu)
         enemy.update(display, frame, menu, dino)
 
         # Update status menu dan display
-        menu.update(display, font)
+        menu.update(display, pygame.mouse.get_pos())
         pygame.display.update()
 
         # Atur frame untuk loop selanjutnya
@@ -73,7 +76,6 @@ if __name__ == "__main__":
     pygame.display.set_caption("Bellatrix's Dino Game")
     background = pygame.image.load("assets/background_01.png")
     display = pygame.display.set_mode((display_width, display_height))
-    font = pygame.font.Font("assets/VT323-Regular.ttf", font_size)
     fps = pygame.time.Clock()
     # Panggil game
     dino_game()

@@ -1,8 +1,11 @@
 import pygame
 
+# Ganti animasi tiap 5 frame
+anim_delay = 5
+
+# Pengaturan lompatan dino
 jump_speed = 7
 jump_height = 120
-anim_delay = 5
 
 class Dino:
     def __init__(self, road_height):

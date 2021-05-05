@@ -1,10 +1,15 @@
 import pygame
 import random
 
+# Ganti animasi tiap 5 frame
+anim_delay = 5
+
+# Jarak antar musuh
 min_gap = 450
 max_gap = 650
+
+# Kecepatan gerak musuh
 move_speed = 12
-anim_delay = 5
 
 class Enemy:
     # List musuh yang ada
@@ -29,20 +34,20 @@ class Enemy:
             self.instances.append(Papan(self.road_height, enemy_gap))
 
     def update(self, display, frame, menu, dino):
-            # Tambahkan musuh terus-menerus
-            self.generate(display)
-            for enemy in self.instances:
-                # Update posisi musuh secara perlahan
-                enemy.update(display, frame, menu.state)
-                if menu.state == "RUN":
-                    # Hapus musuh yang sudah di luar layar
-                    if enemy.state == "NOT_EXIST":
-                        self.instances.remove(enemy)
-                        menu.add_score()
-                    # Cek apakah dino bertabrakan dengan musuh
-                    if dino.rect.colliderect(enemy.rect):
-                        dino.hurt()
-                        menu.game_end()
+        # Tambahkan musuh terus-menerus
+        self.generate(display)
+        for enemy in self.instances:
+            # Update posisi musuh secara perlahan
+            enemy.update(display, frame, menu.state)
+            if menu.state == "RUN":
+                # Hapus musuh yang sudah di luar layar
+                if enemy.state == "NOT_EXIST":
+                    self.instances.remove(enemy)
+                    menu.add_score()
+                # Cek apakah dino bertabrakan dengan musuh
+                if dino.rect.colliderect(enemy.rect):
+                    dino.hurt()
+                    menu.game_end()
 
 class Papan:
     def __init__(self, road_height, pos_x):
@@ -71,18 +76,19 @@ class Papan:
         self.randomize()
 
     def randomize(self):
-        enemy_type = random.randint(0, 4)
+        enemy_type = random.randint(0, 2)
         # Ubah animasi musuh
         if enemy_type == 0:
             self.anim = self.snail_anim
         elif enemy_type == 1:
             self.anim = self.spike_anim
-        elif enemy_type > 1:
+        elif enemy_type == 2:
             self.anim = self.fly_anim
+            fly_height = random.randint(0, 3)
             # Ubah ketinggian musuh
-            if enemy_type == 2:
+            if fly_height == 0:
                 self.pos_y = 15
-            elif enemy_type == 3:
+            elif enemy_type == 1:
                 self.pos_y = 35
             else: self.pos_y = 60
 
