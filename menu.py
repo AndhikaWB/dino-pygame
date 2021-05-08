@@ -1,20 +1,20 @@
 import pygame
 
-# Font untuk teks skor
+# Font untuk tampilan skor
+font_color = 255, 255, 255
 font_size = 28
-font_color = (255, 255, 255)
 
 # Batas kecepatan game
 min_speed = 30
 max_speed = 60
 
 # Skor +10 tiap 5 rintangan
-score_point_add = 10
-score_point_gap = 5
+score_add = 10
+score_gap = 5
 
 # Speed +3 tiap 10 rintangan
-score_speed_add = 3
-score_speed_gap = 30
+speed_add = 3
+speed_gap = 30
 
 class Menu:
     def __init__(self):
@@ -24,9 +24,9 @@ class Menu:
         self.state = "DIED"
         # Kecepatan game
         self.speed = min_speed
-        # Font game
+        # Font untuk skor game
         self.font = pygame.font.Font("assets/VT323-Regular.ttf", font_size)
-        # Animasi pada menu game
+        # Gambar untuk menu game
         self.title_text = [
             pygame.image.load("assets/title_start_01.png").convert_alpha(),
             pygame.image.load("assets/title_pause_01.png").convert_alpha(),
@@ -46,78 +46,88 @@ class Menu:
         ]
         # Judul dan pilihan menu yang ditampilkan
         self.title = self.title_text[0]
-        self.menu = [ self.menu_start, self.menu_exit ]
-        # Posisi mouse pada pilihan menu
-        self.hover = None
+        self.choices = [ self.menu_start, self.menu_exit ]
+        # Indeks pilihan menu yang sedang dipilih
+        self.choose = 0
+
+    def prev(self):
+        # Pilih pilihan sebelumnya pada menu
+        if self.choose - 1 >= 0:
+            self.choose -= 1
+
+    def next(self):
+        # Pilih pilihan selanjutnya pada menu
+        if self.choose + 1 < len(self.choices):
+            self.choose += 1
 
     def add_score(self):
         self.score += 1
         # Bonus skor tiap X rintangan
-        if self.score % score_point_gap == 0:
-            self.score += score_point_add
-            print(f"Score +{score_point_add} ({self.score})")
+        if self.score % score_gap == 0:
+            self.score += score_add
+            print(f"Score +{score_gap} ({self.score})")
         # Tambah kecepatan tiap X rintangan
-        if self.score % score_speed_gap == 0:
+        if self.score % speed_gap == 0:
             if self.speed < max_speed:
-                self.speed += score_speed_add
-                print(f"Speed +{score_speed_add} ({self.speed})")
+                self.speed += speed_add
+                print(f"Speed +{speed_add} ({self.speed})")
 
-    def game_run(self):
-        # Posisi game sedang berjalan
-        self.state = "RUN"
-
-    def game_pause(self):
-        # Posisi game sedang di menu pause
-        self.state = "PAUSE"
-        # Atur judul dan pilihan menu
-        self.hover = None
-        self.title = self.title_text[1]
-        self.menu = [ self.menu_continue, self.menu_start, self.menu_exit ]
-
-    def game_end(self):
-        # Posisi game sedang di menu game over
-        print(f"Game over ({self.score})")
-        self.state = "DIED"
-        # Atur judul dan pilihan menu
-        self.hover = None
-        self.title = self.title_text[2]
-        self.menu = [ self.menu_start, self.menu_exit ]
-
-    def reset(self, display, dino, enemy):
-        # Reset skor dan status
+    def reset(self):
+        # Ulangi game dari posisi awal
         self.__init__()
         self.state = "RUN"
-        # Reset posisi dino dan musuh
-        dino.reset()
-        enemy.reset(display)
 
-    def update(self, display, mouse_pos):
-        # Update skor secara terus menerus
+    def unpause(self):
+        # Lanjutkan game dari posisi terakhir
+        self.state = "RUN"
+        self.choose = 0
+
+    def pause(self):
+        # Menampilkan menu pause
+        self.state = "PAUSE"
+        # Judul pada menu pause
+        self.title = self.title_text[1]
+        # Pilihan pada menu pause
+        self.choices = [ self.menu_continue, self.menu_start, self.menu_exit ]
+
+    def endgame(self):
+        # Menampilkan menu game over
+        self.state = "DIED"
+        # Judul pada menu game over
+        self.title = self.title_text[2]
+        # Pilihan pada menu game over
+        self.choices = [ self.menu_start, self.menu_exit ]
+
+    def update(self, display):
+        # Ikuti perubahan skor secara realtime
         score_text = self.font.render("Skor: " + str(self.score), True, font_color)
+        # Tampilkan skor di layar pada koordinat (10, 10)
         display.blit(score_text, (10, 10))
 
-        # Tampilkan menu pause/game over
+        # Jika game sedang pause atau game over
         if self.state != "RUN":
-            # Ketinggian judul menu
+            # Ketinggian judul pada menu
             title_pos_y = 170
-            # Ketinggian pilihan menu saat ini
+            # Ketinggian pilihan pada menu
             menu_pos_y = title_pos_y + 70
-            # Jarak untuk pilihan menu selanjutnya
+            # Jarak antar pilihan pada menu
             menu_gap = 40
-    
+
             # Tampilkan judul menu
             title_rect = self.title.get_rect(center = (display.get_width() // 2, title_pos_y))
             display.blit(self.title, title_rect)
 
-            # Enumerasi tiap-tiap pilihan menu
-            for index, choice in enumerate(self.menu):
-                # Dapatkan posisi pilihan ke X pada menu
+            # Enumerasi tiap-tiap pilihan pada menu
+            for index, choice in enumerate(self.choices):
+                # Kalkulasikan posisi gambar untuk pilihan ke X
                 choice_rect = choice[0].get_rect(center = (display.get_width() // 2, menu_pos_y))
-                # Jika posisi mouse pada pilihan ke X
-                if choice_rect.collidepoint(mouse_pos):
+
+                # Tampilkan pilihan sebagai gambar pada layar
+                if self.choose == index:
+                    # Gambar berwarna gelap jika sedang dipilih
                     display.blit(choice[1], choice_rect)
-                    self.hover = index
-                # Jika posisi mouse dikoordinat lain
+                # Gambar berwarna terang jika tidak sedang dipilih
                 else: display.blit(choice[0], choice_rect)
-                # Cegah overlap untuk pilihan menu selanjutnya
+
+                # Tambah jarak untuk gambar pilihan ke X+1
                 menu_pos_y += menu_gap
