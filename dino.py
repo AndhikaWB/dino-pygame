@@ -1,89 +1,113 @@
+import glob
 import pygame
 
-# Ganti animasi tiap 5 frame
-anim_delay = 5
+def muat_gambar(nama_animasi):
+    # Muat gambar (bisa lebih dari satu) yang terdapat pada folder "assets"
+    return [ pygame.image.load(gambar).convert_alpha() for gambar in glob.glob(f"assets/{nama_animasi}*.png") ]
 
-# Batas lompatan dino
-jump_height = 120
-jump_speed = 7
+def mainkan_musik(nama_musik):
+    # Mainkan suara/musik yang terdapat pada folder "assets"
+    musik = pygame.mixer.Sound(f"assets/{nama_musik}.ogg")
+    musik.play()
 
 class Dino:
-    def __init__(self, road_height):
-        # Posisi dino
+    def __init__(self, tinggi_jalan):
+        # Ketinggian jalan dari bagian bawah layar
+        self.tinggi_jalan = tinggi_jalan
+    
+        # Jarak dino dari bagian kiri layar
         self.pos_x = 70
+        # Jarak dino dari jalan
         self.pos_y = 0
-        # Ketinggian jalan
-        self.road_height = road_height
-        # Status dino
-        self.state = "IDLE"
-        # Area dan animasi dino
-        self.rect = None
-        self.anim = [
-            pygame.image.load("assets/dino_idle_01.png").convert_alpha()
-        ]
-        self.walk_anim = [
-            pygame.image.load("assets/dino_move_01.png").convert_alpha(),
-            pygame.image.load("assets/dino_move_02.png").convert_alpha()
-        ]
-        self.jump_anim = [
-            pygame.image.load("assets/dino_jump_01.png").convert_alpha()
-        ]
-        self.duck_anim = [
-            pygame.image.load("assets/dino_duck_01.png").convert_alpha()
-        ]
-        self.hurt_anim = [
-            pygame.image.load("assets/dino_hurt_01.png").convert_alpha()
-        ]
+
+        # Batas lompatan dino
+        self.tinggi_lompat = 126
+        self.laju_lompat = 7
+
+        # Status dino mula-mula
+        self.status = "DIAM"
+
+        # Animasi dino mula-mula
+        self.animasi = muat_gambar("dino_idle")
+        # Jeda animasi dino tiap X frame
+        self.jeda_animasi = 5
+
+        # Animasi lain yang dibutuhkan (hemat proses)
+        self.anim_lari = muat_gambar("dino_move")
+        self.anim_lompat = muat_gambar("dino_jump")
+        self.anim_jongkok = muat_gambar("dino_duck")
+        self.anim_mati = muat_gambar("dino_hurt")
+    
+        # Area tabrakan bagi dino
+        self.area_anim = None
+
+    def perbarui(self, layar, frame, menu):
+        # Game dalam keadaan bermain
+        if menu.status == "BERMAIN":
+            # Jika status dino sedang melompat
+            # 1) Tambah ketinggian sampai titik maksimum
+            # 2) Ubah status menjadi lari (cegah terbang)
+            if self.status == "LOMPAT":
+                if self.pos_y < self.tinggi_lompat:
+                    self.pos_y += self.laju_lompat
+                else: self.status = "LARI"
+            # Jika status dino sedang berlari
+            # 1) Kurangi ketinggian sampai setara jalan
+            # 2) Ganti animasi menjadi berlari
+            elif self.status == "LARI":
+                if self.pos_y > 0:
+                    self.pos_y -= self.laju_lompat
+                else: self.animasi = self.anim_lari
+
+        # Agar animasi dino tidak berganti terlalu cepat
+        # Misalkan jeda animasi = 5 dan maks frame = 30
+        # 1) Untuk frame 0-4 indeks animasinya 0
+        # 2) Untuk frame 5-9 indeks animasinya 1
+        # 3) Untuk frame 10-14 indeks animasinya 0
+        # 4) Untuk frame 15-19 indeks animasinya 1
+        # Dan seterusnya sampai frame ke 30...
+        frame = frame % (self.jeda_animasi * len(self.animasi))
+        if frame < self.jeda_animasi: indeks_anim = 0
+        else: indeks_anim = 1
+
+        # Kalkulasikan ketinggian dino berdasarkan tinggi layar, tinggi jalan, tinggi animasi, dan tinggi tambahan bila melompat
+        # Perlu diingat bahwa koordinat awal (0, 0) pada layar dimulai dari pojok kiri atas, bukan pojok kiri bawah
+        ketinggian_dino = layar.get_height() - self.tinggi_jalan - self.animasi[indeks_anim].get_height() - self.pos_y
+        # Tampilkan gambar animasi dino pada koordinat tertentu dalam layar game
+        layar.blit(self.animasi[indeks_anim], (self.pos_x, ketinggian_dino))
+
+        # Perbarui juga area animasi dino untuk pengecekan tabrakan
+        # Area animasi merupakan kotak transparan (hitbox) di sekeliling dino
+        self.area_anim = self.animasi[indeks_anim].get_rect(topleft = (self.pos_x, ketinggian_dino))
 
     def reset(self):
-        # Reset keberadaan dino
-        self.__init__(self.road_height)
+        # Reset dino seperti semula
+        self.__init__(self.tinggi_jalan)
 
-    def update(self, display, frame, menu):
-        if menu.state == "RUN":
-            if self.state == "JUMP":
-                # Dino naik perlahan-lahan sampai titik maksimum
-                if self.pos_y < jump_height:
-                    self.pos_y += jump_speed
-                # Ganti status dino jika sudah di titik maksimum
-                else: self.state = "WALK"
-            elif self.state == "WALK":
-                # Dino turun perlahan-lahan sampai titik minimum
-                if self.pos_y > 0:
-                    self.pos_y -= jump_speed
-                # Ganti animasi dino jika sudah di titik minimum
-                else: self.anim = self.walk_anim
-
-        # Haluskan animasi dino
-        frame %= anim_delay * len(self.anim)
-        if frame < anim_delay: frame = 0
-        else: frame = 1
-
-        # Dapatkan area gambar dino untuk pengecekan tabrakan
-        self.rect = self.anim[frame].get_rect(topleft = (self.pos_x, self.pos_y))
-        # Tampilkan posisi dino saat ini ke layar game
-        display.blit(self.anim[frame], (self.pos_x, display.get_height() - self.road_height - self.anim[0].get_height() - self.pos_y))
-
-    def walk(self):
-        # Cegah berjalan saat melompat
+    def lari(self):
+        # Cegah berlari saat sedang melompat
         if self.pos_y <= 0:
+            self.status = "LARI"
+            self.animasi = self.anim_lari
+            # Reset posisi dino bila sedang jongkok
             self.pos_y = 0
-            self.state = "WALK"
-            self.anim = self.walk_anim
 
-    def jump(self):
-        # Cegah melompat berkali-kali
+    def lompat(self):
+        # Cegah lompat berkali-kali
         if self.pos_y == 0:
-            self.state = "JUMP"
-            self.anim = self.jump_anim
+            self.status = "LOMPAT"
+            self.animasi = self.anim_lompat
+            mainkan_musik("dino_jump")
 
-    def duck(self):
-        # Cegah menunduk saat melompat
+    def jongkok(self):
+        # Cegah jongkok saat sedang melompat
         if self.pos_y == 0:
-            self.pos_y -= 20
-            self.state = "DUCK"
-            self.anim = self.duck_anim
+            self.status = "JONGKOK"
+            self.animasi = self.anim_jongkok
+            # Turunkan sedikit posisi dino
+            self.pos_y = -20
 
-    def hurt(self):
-        # Animasi ketika menabrak musuh
-        self.anim = self.hurt_anim
+    def mati(self):
+        # Saat dino menabrak musuh
+        self.animasi = self.anim_mati
+        mainkan_musik("dino_hurt")

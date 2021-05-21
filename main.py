@@ -1,106 +1,111 @@
 import pygame
-import random
 
-from menu import Menu
 from dino import Dino
-from enemy import EnemyMgr
+from nilai import Nilai
+from menu import Menu
+from pabrik import Pabrik
 
-# Ukuran layar game
-display_width = 800
-display_height = 600
+class Game:
+    def __init__(self):
+        # Ukuran layar game
+        self.lebar_layar = 800
+        self.tinggi_layar = 600
 
-# Ketinggian jalan
-road_height = 50
+        # Inisialisasi dino game
+        self.layar = pygame.display.set_mode((self.lebar_layar, self.tinggi_layar))
+        self.gambar_latar = pygame.image.load("assets/background_01.png").convert()
+        pygame.display.set_caption("Bellatrix's Dino Game")
+        self.fps = pygame.time.Clock()
+        pygame.mouse.set_visible(False)
 
-def dino_game():
-    # Instansiasi objek
-    menu = Menu()
-    dino = Dino(road_height)
-    enemy = EnemyMgr(road_height)
+        # Ketinggian jalan
+        self.tinggi_jalan = 50
 
-    # Frame mula-mula
-    frame = 0
+        # Instansiasi kelas
+        self.menu = Menu()
+        self.nilai = Nilai()
+        self.dino = Dino(self.tinggi_jalan)
+        self.pabrik = Pabrik(self.tinggi_jalan)
 
-    while True:
-        # Tampilkan background game
-        display.blit(background, (0, 0))
+        # Frame mula-mula
+        self.frame = 0
 
-        # Dapatkan informasi event saat ini
-        for event in pygame.event.get():
-            # Keluar dari game jika layar ditutup
-            if event.type == pygame.QUIT:
-                return
+    def jalankan(self):
+        while True:
+            # Tampilkan gambar latar
+            self.layar.blit(self.gambar_latar, (0, 0))
 
-            # Game sedang berjalan
-            elif menu.state == "RUN":
-                if event.type == pygame.KEYDOWN:
-                    # Tekan UP untuk melompat
-                    if event.key == pygame.K_UP:
-                        dino.jump()
-                    # Tekan DOWN untuk menunduk
-                    elif event.key == pygame.K_DOWN:
-                        dino.duck()
-                    # Tekan ESC untuk berhenti sejenak
-                    elif event.key == pygame.K_ESCAPE:
-                        menu.pause()
-                # Kembali berjalan sesudah menekan tombol
-                elif event.type == pygame.KEYUP:
-                    dino.walk()
+            for event in pygame.event.get():
+                # Cek event yang sedang terjadi
+                keluar = self.cek_event(event)
+                # Keluar dari game jika diminta
+                if keluar == True: return
 
-            # Game sedang berhenti pada menu
-            elif menu.state != "RUN":
-                if event.type == pygame.KEYDOWN:
-                    # Tekan UP untuk pilihan sebelumnya
-                    if event.key == pygame.K_UP:
-                        menu.prev()
-                    # Tekan DOWN untuk pilihan selanjutnya
-                    elif event.key == pygame.K_DOWN:
-                        menu.next()
-                    # Tekan ENTER untuk memilih pilihan menu
-                    elif event.key == pygame.K_RETURN:
-                        # Posisi pilihan pada menu pause sebagai basis
-                        if menu.state == "PAUSE":
-                            choose = menu.choose
-                        # Sesuaikan posisi pilihan seperti menu pause
-                        elif menu.state == "DIED":
-                            choose = menu.choose + 1
+            # Tampilkan menu bila tidak sedang bermain
+            self.menu.perbarui(self.layar)
+            # Perbarui posisi dino
+            self.dino.perbarui(self.layar, self.frame, self.menu)
+            # Perbarui posisi musuh, cek tabrakan, dan tambah nilai skor
+            self.pabrik.perbarui(self.layar, self.frame, self.menu, self.nilai, self.dino)
+            # Tampilkan nilai skor
+            self.nilai.perbarui(self.layar)
 
-                        # Memilih "Lanjutkan permainan"
-                        if choose == 0:
-                            menu.unpause()
-                        # Memilih "Permainan baru"
-                        elif choose == 1:
-                            menu.reset()
-                            dino.reset()
-                            enemy.reset(display)
-                        # Memilih "Keluar"
-                        elif choose == 2:
-                            return
+            # Terapkan semua perubahan pada layar
+            pygame.display.update()
 
-        # Update gerakan dino
-        dino.update(display, frame, menu)
+            # Atur frame untuk perulangan selanjutnya
+            self.frame = (self.frame + 1) % self.nilai.laju
+            self.fps.tick(self.nilai.laju)
 
-        # Update musuh, skor, dan cek tabrakan
-        enemy.update(display, frame, menu, dino)
-
-        # Update gerakan menu dan layar
-        menu.update(display)
-        pygame.display.update()
-
-        # Atur frame untuk loop selanjutnya
-        frame = (frame + 1) % menu.speed
-        fps.tick(menu.speed)
+    def cek_event(self, event):
+        # Keluar game saat tombol silang diklik
+        if event.type == pygame.QUIT:
+            return True
+        # Game dalam keadaan bermain
+        elif self.menu.status == "BERMAIN":
+            if event.type == pygame.KEYDOWN:
+                # Lompat saat tombol panah atas ditekan
+                if event.key == pygame.K_UP:
+                    self.dino.lompat()
+                # Jongkok saat tombol panah bawah ditekan
+                elif event.key == pygame.K_DOWN:
+                    self.dino.jongkok()
+                # Berhenti saat tombol escape ditekan
+                elif event.key == pygame.K_ESCAPE:
+                    self.menu.berhenti()
+            elif event.type == pygame.KEYUP:
+                # Berlari saat tombol panah bawah dilepas
+                if event.key == pygame.K_DOWN:
+                    self.dino.lari()
+        # Game sedang berada pada menu
+        elif self.menu.status != "BERMAIN":
+            if event.type == pygame.KEYDOWN:
+                # Pilihan sebelumnya saat tombol panah atas ditekan
+                if event.key == pygame.K_UP:
+                    self.menu.sebelumnya()
+                # Pilihan berikutnya saat tombol panah bawah ditekan
+                elif event.key == pygame.K_DOWN:
+                    self.menu.berikutnya()
+                # Pilih pilihan tersebut saat tombol enter ditekan
+                elif event.key == pygame.K_RETURN:
+                    if self.menu.pilih() == "LANJUTKAN":
+                        self.menu.reset()
+                    elif self.menu.pilih() == "MAIN_BARU":
+                        for objek in (self.menu, self.nilai, self.dino, self.pabrik):
+                            objek.reset()
+                        self.dino.lari()
+                    elif self.menu.pilih() == "KELUAR":
+                        return True
 
 if __name__ == "__main__":
-    # Inisialisasi layar
+    # Inisialisasi layar dan suara
     pygame.init()
+    pygame.mixer.init()
 
-    # Inisialisasi game
-    pygame.display.set_caption("Bellatrix's Dino Game")
-    background = pygame.image.load("assets/background_01.png")
-    display = pygame.display.set_mode((display_width, display_height))
-    fps = pygame.time.Clock()
+    # Jalankan dino game
+    dino_game = Game()
+    dino_game.jalankan()
 
-    # Panggil game
-    dino_game()
+    # Matikan layar dan suara
     pygame.quit()
+    pygame.mixer.quit()

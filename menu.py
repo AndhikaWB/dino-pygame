@@ -1,133 +1,94 @@
+import glob
 import pygame
 
-# Font untuk tampilan skor
-font_color = 255, 255, 255
-font_size = 28
-
-# Batas kecepatan game
-min_speed = 30
-max_speed = 60
-
-# Skor +10 tiap 5 rintangan
-score_add = 10
-score_gap = 5
-
-# Speed +3 tiap 10 rintangan
-speed_add = 3
-speed_gap = 30
+def muat_gambar(nama_animasi):
+    # Muat gambar (bisa lebih dari satu) yang terdapat pada folder "assets"
+    return [ pygame.image.load(gambar).convert_alpha() for gambar in glob.glob(f"assets/{nama_animasi}*.png") ]
 
 class Menu:
     def __init__(self):
-        # Skor game
-        self.score = 0
-        # Status game
-        self.state = "DIED"
-        # Kecepatan game
-        self.speed = min_speed
-        # Font untuk skor game
-        self.font = pygame.font.Font("assets/VT323-Regular.ttf", font_size)
-        # Gambar untuk menu game
-        self.title_text = [
-            pygame.image.load("assets/title_start_01.png").convert_alpha(),
-            pygame.image.load("assets/title_pause_01.png").convert_alpha(),
-            pygame.image.load("assets/title_end_01.png").convert_alpha()
-        ]
-        self.menu_continue = [
-            pygame.image.load("assets/menu_continue_01.png").convert_alpha(),
-            pygame.image.load("assets/menu_continue_02.png").convert_alpha()
-        ]
-        self.menu_start = [
-            pygame.image.load("assets/menu_start_01.png").convert_alpha(),
-            pygame.image.load("assets/menu_start_02.png").convert_alpha()
-        ]
-        self.menu_exit = [
-            pygame.image.load("assets/menu_exit_01.png").convert_alpha(),
-            pygame.image.load("assets/menu_exit_02.png").convert_alpha()
-        ]
-        # Judul dan pilihan menu yang ditampilkan
-        self.title = self.title_text[0]
-        self.choices = [ self.menu_start, self.menu_exit ]
-        # Indeks pilihan menu yang sedang dipilih
-        self.choose = 0
+        # Status game mula-mula
+        self.status = "TAMAT"
 
-    def prev(self):
-        # Pilih pilihan sebelumnya pada menu
-        if self.choose - 1 >= 0:
-            self.choose -= 1
+        # Posisi judul dari tengah layar
+        self.judul_pos_y = -130
+        # Posisi pilihan pertama pada menu
+        self.menu_pos_y = self.judul_pos_y + 70
+        # Jarak untuk pilihan selanjutnya
+        self.gap_pilihan = 40
 
-    def next(self):
-        # Pilih pilihan selanjutnya pada menu
-        if self.choose + 1 < len(self.choices):
-            self.choose += 1
+        # Gambar yang dibutuhkan pada menu (hemat proses)
+        self.teks_judul = muat_gambar("title")
+        self.teks_main_baru = muat_gambar("menu_start")
+        self.teks_lanjutkan = muat_gambar("menu_continue")
+        self.teks_keluar = muat_gambar("menu_exit")
 
-    def add_score(self):
-        self.score += 1
-        # Bonus skor tiap X rintangan
-        if self.score % score_gap == 0:
-            self.score += score_add
-            print(f"Score +{score_gap} ({self.score})")
-        # Tambah kecepatan tiap X rintangan
-        if self.score % speed_gap == 0:
-            if self.speed < max_speed:
-                self.speed += speed_add
-                print(f"Speed +{speed_add} ({self.speed})")
+        # Judul dan pilihan menu mula-mula
+        self.judul = self.teks_judul[0] # Bellatrix's dino game
+        self.menu = [ self.teks_main_baru, self.teks_keluar]
+    
+        # Indeks pilihan yang sedang dipilih pada menu
+        self.pilihan = 0 # Permainan baru
+
+    def perbarui(self, layar):
+        if self.status != "BERMAIN":
+            # Kalkulasikan posisi judul berdasarkan lebar layar, tinggi layar, dan jarak dari tengah layar
+            # Perlu diingat bahwa koordinat awal (0, 0) pada layar dimulai dari pojok kiri atas, bukan pojok kiri bawah
+            area_judul = self.judul.get_rect(center = (layar.get_width() // 2, layar.get_height() // 2 + self.judul_pos_y))
+            # Tampilkan gambar judul pada koordinat tertentu dalam layar game
+            layar.blit(self.judul, area_judul)
+
+            # Variabel "menu_pos_y" hanya digunakan sebagai konstan
+            # Gunakan variabel sementara untuk mengubah nilainya
+            temp_pos = self.menu_pos_y
+
+            for indeks, pilihan in enumerate(self.menu):
+                # Kalkulasikan posisi pilihan berdasarkan lebar layar, tinggi layar, dan jarak dari tengah layar
+                area_pilihan = pilihan[0].get_rect(center = (layar.get_width() // 2, layar.get_height() // 2 + temp_pos))
+
+                # Tampilkan tiap-tiap pilihan pada menu
+                # 1) pilihan[0] = bila pilihan menu tersebut tidak sedang dipilih, teks berwarna putih
+                # 2) pilihan[1] = bila pilihan menu tersebut sedang dipilih, teks berwarna hitam
+                # Keduanya harus memiliki ukuran yang sama karena posisinya diperhitungkan
+                if self.pilihan == indeks:
+                    layar.blit(pilihan[1], area_pilihan)
+                else: layar.blit(pilihan[0], area_pilihan)
+
+                # Tambah jarak untuk pilihan selanjutnya
+                temp_pos += self.gap_pilihan
 
     def reset(self):
-        # Ulangi game dari posisi awal
-        self.__init__()
-        self.state = "RUN"
-
-    def unpause(self):
         # Lanjutkan game dari posisi terakhir
-        self.state = "RUN"
-        self.choose = 0
+        self.status = "BERMAIN"
+        self.pilihan = 0
 
-    def pause(self):
-        # Menampilkan menu pause
-        self.state = "PAUSE"
-        # Judul pada menu pause
-        self.title = self.title_text[1]
-        # Pilihan pada menu pause
-        self.choices = [ self.menu_continue, self.menu_start, self.menu_exit ]
+    def berhenti(self):
+        # Hentikan game untuk sementara
+        self.status = "BERHENTI"
+        self.judul = self.teks_judul[1] # Permainan berhenti
+        self.menu = [ self.teks_lanjutkan, self.teks_main_baru, self.teks_keluar ]
 
-    def endgame(self):
-        # Menampilkan menu game over
-        self.state = "DIED"
-        # Judul pada menu game over
-        self.title = self.title_text[2]
-        # Pilihan pada menu game over
-        self.choices = [ self.menu_start, self.menu_exit ]
+    def tamat(self):
+        # Hentikan game karena menabrak musuh
+        self.status = "TAMAT"
+        self.judul = self.teks_judul[2] # Permainan berakhir
+        self.menu = [ self.teks_main_baru, self.teks_keluar ]
 
-    def update(self, display):
-        # Ikuti perubahan skor secara realtime
-        score_text = self.font.render("Skor: " + str(self.score), True, font_color)
-        # Tampilkan skor di layar pada koordinat (10, 10)
-        display.blit(score_text, (10, 10))
+    def berikutnya(self):
+        # Memilih pilihan menu berikutnya
+        if self.pilihan + 1 < len(self.menu):
+            self.pilihan += 1
 
-        # Jika game sedang pause atau game over
-        if self.state != "RUN":
-            # Ketinggian judul pada menu
-            title_pos_y = 170
-            # Ketinggian pilihan pada menu
-            menu_pos_y = title_pos_y + 70
-            # Jarak antar pilihan pada menu
-            menu_gap = 40
+    def sebelumnya(self):
+        # Memilih pilihan menu sebelumnya
+        if self.pilihan - 1 >= 0:
+            self.pilihan -= 1
 
-            # Tampilkan judul menu
-            title_rect = self.title.get_rect(center = (display.get_width() // 2, title_pos_y))
-            display.blit(self.title, title_rect)
-
-            # Enumerasi tiap-tiap pilihan pada menu
-            for index, choice in enumerate(self.choices):
-                # Kalkulasikan posisi gambar untuk pilihan ke X
-                choice_rect = choice[0].get_rect(center = (display.get_width() // 2, menu_pos_y))
-
-                # Tampilkan pilihan sebagai gambar pada layar
-                if self.choose == index:
-                    # Gambar berwarna gelap jika sedang dipilih
-                    display.blit(choice[1], choice_rect)
-                # Gambar berwarna terang jika tidak sedang dipilih
-                else: display.blit(choice[0], choice_rect)
-
-                # Tambah jarak untuk gambar pilihan ke X+1
-                menu_pos_y += menu_gap
+    def pilih(self):
+        # Memilih pilihan menu saat ini
+        if self.menu[self.pilihan] == self.teks_lanjutkan:
+            return "LANJUTKAN"
+        elif self.menu[self.pilihan] == self.teks_main_baru:
+            return "MAIN_BARU"
+        elif self.menu[self.pilihan] == self.teks_keluar:
+            return "KELUAR"
