@@ -16,6 +16,9 @@ class Papan:
         # Jarak musuh dari jalan
         self.pos_y = 0
 
+        # Kecepatan gerak musuh
+        self.laju_musuh = 12
+
         # Status musuh mula-mula
         self.status = "DIHADANG"
 
@@ -23,9 +26,6 @@ class Papan:
         self.animasi = []
         # Jeda animasi musuh tiap X frame
         self.jeda_animasi = 5
-
-        # Kecepatan gerak musuh
-        self.laju_musuh = 12
 
         # Area tabrakan bagi musuh
         self.area_anim = None
@@ -52,13 +52,13 @@ class Papan:
 
         # Kalkulasikan ketinggian musuh berdasarkan tinggi layar, tinggi jalan, tinggi animasi, dan tinggi tambahan bila terbang
         # Perlu diingat bahwa koordinat awal (0, 0) pada layar dimulai dari pojok kiri atas, bukan pojok kiri bawah
-        ketinggian_dino = layar.get_height() - self.tinggi_jalan - self.animasi[indeks_anim].get_height() - self.pos_y
+        ketinggian_papan = layar.get_height() - self.tinggi_jalan - self.animasi[indeks_anim].get_height() - self.pos_y
         # Tampilkan gambar animasi musuh pada koordinat tertentu dalam layar game
-        layar.blit(self.animasi[indeks_anim], (self.pos_x, ketinggian_dino))
+        layar.blit(self.animasi[indeks_anim], (self.pos_x, ketinggian_papan))
 
         # Perbarui juga area animasi musuh untuk pengecekan tabrakan
         # Area animasi merupakan kotak transparan (hitbox) di sekeliling musuh
-        self.area_anim = self.animasi[indeks_anim].get_rect(topleft = (self.pos_x, ketinggian_dino))
+        self.area_anim = self.animasi[indeks_anim].get_rect(topleft = (self.pos_x, ketinggian_papan))
 
 class Siput(Papan):
     def __init__(self, tinggi_jalan, pos_x):

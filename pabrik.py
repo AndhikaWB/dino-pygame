@@ -13,6 +13,7 @@ class Pabrik:
         
         # Jumlah musuh maksimal
         self.jumlah_maks = 2
+
         # List musuh mula-mula
         self.list_musuh = []
 
