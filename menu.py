@@ -66,6 +66,8 @@ class Menu:
         if self.score % score_gap == 0:
             self.score += score_add
             print(f"Score +{score_gap} ({self.score})")
+            # Keluarkan suara bonus
+            pygame.mixer.Sound(f"assets/dino_score.ogg").play()
         # Tambah kecepatan tiap X rintangan
         if self.score % speed_gap == 0:
             if self.speed < max_speed:

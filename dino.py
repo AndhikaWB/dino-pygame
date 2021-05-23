@@ -76,6 +76,8 @@ class Dino:
         if self.pos_y == 0:
             self.state = "JUMP"
             self.anim = self.jump_anim
+            # Keluarkan suara melompat
+            pygame.mixer.Sound(f"assets/dino_jump.ogg").play()
 
     def duck(self):
         # Cegah menunduk saat melompat
@@ -87,3 +89,5 @@ class Dino:
     def hurt(self):
         # Animasi ketika menabrak musuh
         self.anim = self.hurt_anim
+        # Keluarkan suara terluka
+        pygame.mixer.Sound(f"assets/dino_hurt.ogg").play()
