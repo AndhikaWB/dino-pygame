@@ -12,5 +12,14 @@ Chrome's dino game implemented using Pygame
 8. Done, just run `main.py` to launch dino game
 
 ## Other notes
-Use `master` branch for now (unless you're Indonesian).  
-Codes in `devel` branch are currently written using Indonesian language.
+Codes in `master` branch were written in English (except the comments).  
+Codes in `devel` branch are currently written in Bahasa Indonesia.
+
+## Screenshots
+![Screenshot 1](docs/Screenshot_1.png)
+![Screenshot 2](docs/Screenshot_2.png)
+![Screenshot 3](docs/Screenshot_3.png)
+
+## Credits
+Most graphic assets were taken from [Kenney](https://www.kenney.nl/).  
+VT323 font (by Peter Hull) was taken from [Google Fonts](https://fonts.google.com/specimen/VT323).
